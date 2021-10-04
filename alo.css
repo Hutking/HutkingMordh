@@ -3,3 +3,32 @@
     background-image: url(/img/bgs/bgvideo_poster.png);
     /* background-position: center; */
 }
+#home {
+    align-items: center;
+}
+body {
+    position: fixed;
+    z-index: 1;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: #262626;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    background-size: cover;
+}
+* {
+    box-sizing: border-box;
+    font-family: 'cardo-regular';
+    /* font-variant: small-caps; */
+    position: relative;
+    cursor: default;
+    font-weight: normal;
+}
+user agent stylesheet
+body {
+    display: block;
+    margin: 8px;
+}
