@@ -32,3 +32,63 @@ body {
     display: block;
     margin: 8px;
 }
+:root {
+    --color-faded-gold: #BFA97C;
+    --color-gold: #EAD979;
+    --color-deep-gold: #dbb263;
+    --color-deeper-gold: #d9a33c;
+    --color-deepest-gold: #c98e1d;
+    --color-silver: #AAAAAA;
+    --color-light-silver: #bfbfbf;
+    --color-off-white: #dcd7d1;
+    --color-winner-green: #5e8430;
+    --color-loser-red: #ab2c2c;
+    --color-team-red: #bd3a3a;
+    --color-team-blue: #4965d0;
+    --color-dev-red: #bb3030;
+    --bgColor-light-black: #101110;
+    --bgColor-dark-gray: #1c1c1c;
+    --bgColor-transp-slate: #202328fa;
+    --bgColor-gray: #272727;
+    --bgColor-light-gray: #a09f9f;
+    --bgColor-medium-gray: #313131;
+    --bgColor-header-blue: #192b3e;
+    --bgColor-button-blue: #253e57;
+    --bgColor-team-red: #4a1f1f;
+    --bgColor-team-blue: #252958;
+    --bgColor-pfp: #2e2e2e;
+    --bgColor-green: #72c60d;
+    --bgColor-simple-red: #622626;
+    --bgColor-simple-dark-red: #401111;
+    --bgColor-deep-velvet: #311515;
+    --border-gray: #2F2D2F;
+    --border-black: #181818;
+    --border-coal: #101110;
+    --menuBar-height: 4.5rem;
+    --footer-height: 5rem;
+}
+html {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    font-size: 16px;
+}
+body::after {
+    opacity: 0;
+    position: absolute;
+    z-index: -100;
+    content: url(/img/icons/notifIcon0.png) url(/img/icons/notifIcon.png) url(/img/icons/crown.png) url(/img/icons/crownHollow.png) url(/img/icons/check.png) url(/img/icons/checkG.png) url(/img/icons/checkO.png) url(/img/icons/sound_on.png) url(/img/icons/sound_off.png) url(/img/icons/xWhite.png) url(/img/icons/joinWhiteB.png) url(/img/icons/leaveWhite.png) url(/img/bgs/SkalaLogoAnim.webp);
+}
+::-webkit-scrollbar {
+    width: 12px;
+}
+::-webkit-scrollbar-thumb {
+    background: #3c3c3c;
+}
+::-webkit-scrollbar-track {
+    background: rgba(18, 18, 18, 0.9);
+}
+::selection {
+    background-color: rgba(161, 161, 161, 0.8);
+    color: black;
+}
