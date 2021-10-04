@@ -1,42 +1,1369 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="icon" type="image/png" href="/img/icons/favicon.png">
+	<title>Skalagrad - Home</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Skalagrad - Home" />
+	<meta property="og:description" content="Compete in ranked matchmaking and clan matches for Mordhau, track your stats as you progress, and see how you stack up against the competition!" />
+	<meta property="og:type" content="website" />
+	<meta property="og:image" content="https://skalagrad.com/img/preview.jpeg" />
+	<meta property="og:image:secure_url" content="https://skalagrad.com/img/preview.jpeg" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="980" />
+	<meta property="og:image:height" content="512" />
+	<meta property="og:image:alt" content="Skalagrad preview image" />
+	<meta property="og:site_name" content="Skalagrad" />
+	<meta property="og:url" content="https://skalagrad.com" />
+	<meta name="theme-color" content="#681717" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content="https://skalagrad.com/img/preview_full.jpeg" />
+	<meta name="description" content="Compete in ranked matchmaking and clan matches for Mordhau, track your stats as you progress, and see how you stack up against the competition!" />
+	<meta charset="UTF-8" />
+	<meta name="color-scheme" content="only light">
+	<meta id="skala-meta" data-same-user="false" data-beta-tester="false" data-steady-level="0" />
+	<link rel="image_src" href="https://skalagrad.com/img/preview.jpeg">
+	<link rel="stylesheet" href="style.css">
+	<script src="/res/scripts.js?v=0.900"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src='https://cdn.jsdelivr.net/npm/mustache@4.1.0'></script>
+
+	<script>
+		const DISCORD_LINK = "https://discord.gg/rJewauukZu";
+		const STEADY_URL = "https://steadyhq.com/en/skalagrad/about";
+	</script>
+
+
+
+	<template id="miniNotifTemplate">
+&lt;div id&#x3D;&quot;{{{id}}}&quot; class&#x3D;&quot;mini notif {{^body}}no-body{{&#x2F;body}}&quot;&gt;
+    &lt;img class&#x3D;&quot;x icon&quot; src&#x3D;&quot;&#x2F;img&#x2F;icons&#x2F;xWhite.png&quot; onclick&#x3D;&quot;this.parentNode.remove()&quot; &#x2F;&gt;
+    {{#title}}
+    &lt;div class&#x3D;&quot;title&quot;&gt;{{{.}}}&lt;&#x2F;div&gt;
+    {{&#x2F;title}}
+    {{#body}}&lt;div class&#x3D;&quot;body&quot;&gt;{{{.}}}&lt;&#x2F;div&gt;{{&#x2F;body}}
+    {{#hasAction}}&lt;div class&#x3D;&quot;btnBox&quot;&gt;{{#actions}}&lt;button&gt;{{{text}}}&lt;&#x2F;button&gt;{{&#x2F;actions}}&lt;&#x2F;div&gt;{{&#x2F;hasAction}}
+&lt;&#x2F;div&gt;
+</template>
+	<template id="generalNotifTemplate">
+&lt;div data-nid&#x3D;&quot;{{{note_id}}}&quot; class&#x3D;&quot;notif {{^seen}}new{{&#x2F;seen}}&quot;&gt;
+    &lt;div&gt;{{{content}}}&lt;&#x2F;div&gt;
+
+    {{#meta.datetime}}&lt;br&#x2F;&gt;{{&#x2F;meta.datetime}}
+
+    {{#isChallengeResponse}}
+        &lt;span&gt;{{{meta.pNum}}} {{{meta.mode}}} in {{{meta.region}}}&lt;&#x2F;span&gt;
+        {{#meta.map}}&lt;span&gt;on {{{.}}}&lt;&#x2F;span&gt;{{&#x2F;meta.map}}
+    {{&#x2F;isChallengeResponse}}
+
+    {{#meta.datetime}}
+        &lt;span&gt;{{{meta.datetime.dateString}}} @ {{{meta.datetime.timeString}}}&lt;&#x2F;span&gt;
+    {{&#x2F;meta.datetime}}
+
+    {{#expirationTime}}
+        &lt;div class&#x3D;&quot;exp live&quot; data-datetime&#x3D;&quot;{{{expires}}}&quot;&gt;Expires in {{.}}&lt;&#x2F;div&gt;
+    {{&#x2F;expirationTime}}
+
+    {{#hasAction}}
+        {{#responded}}
+            &lt;div class&#x3D;&quot;actRes&quot;&gt;
+                {{#accepted}}Accepted{{&#x2F;accepted}}
+                {{#declined}}Declined{{&#x2F;declined}}
+            &lt;&#x2F;div&gt;
+        {{&#x2F;responded}}
+        {{^responded}}
+            &lt;div class&#x3D;&quot;btnBox&quot;&gt;
+                &lt;button data-res&#x3D;&quot;1&quot;&gt;Accept&lt;&#x2F;button&gt;
+                &lt;button data-res&#x3D;&quot;0&quot;&gt;Decline&lt;&#x2F;button&gt;
+            &lt;&#x2F;div&gt;
+        {{&#x2F;responded}}
+    {{&#x2F;hasAction}}
+
+    &lt;div class&#x3D;&quot;ts&quot;&gt;
+        &lt;div class&#x3D;&quot;live&quot; data-datetime&#x3D;&quot;{{{timestamp.datetime}}}&quot;&gt;{{{timestamp.diff}}} ago&lt;&#x2F;div&gt;
+        &lt;div class&#x3D;&quot;date&quot;&gt;{{{timestamp.date}}} @ {{{timestamp.time}}}&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+</template>
+	<template id="dialogueBoxTemplate">
+&lt;div onclick&#x3D;&quot;event.stopPropagation()&quot; class&#x3D;&quot;dialogueBox menu overlay hidden{{#classes}} {{.}}{{&#x2F;classes}}&quot; {{#dataset}}data-{{key}}&#x3D;&quot;{{{value}}}&quot;{{&#x2F;dataset}} {{#attributes}}{{key}}&#x3D;&quot;{{{value}}}&quot;{{&#x2F;attributes}}&gt;
+    &lt;div class&#x3D;&quot;content&quot;&gt;
+        {{#title}}
+        &lt;div class&#x3D;&quot;msg contentTitle&quot;&gt;{{{.}}}&lt;&#x2F;div&gt;
+        {{&#x2F;title}}
+        &lt;div class&#x3D;&quot;msg&quot;&gt;{{{msg}}}&lt;&#x2F;div&gt;
+        &lt;div class&#x3D;&quot;btnBox&quot;&gt;
+            {{#buttons}}
+            &lt;button&gt;{{{label}}}&lt;&#x2F;button&gt;
+            {{&#x2F;buttons}}
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    {{#audioSrcID}}
+    &lt;div class&#x3D;&quot;icon intr sound muted&quot; onclick&#x3D;&quot;toggleMute(this, &#39;{{{audioSrcID}}}&#39;)&quot;&gt;&lt;&#x2F;div&gt;
+    {{&#x2F;audioSrcID}}
+    &lt;div class&#x3D;&quot;icon intr xBtn&quot; onclick&#x3D;&quot;closeMenu(this.closest(&#39;.menu&#39;))&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+</template>
+
+
+</head>
+
 <body id="home" onload="onPageLoad()">
+<div id="menuBar">
+	<div id="preloader">
+		<img src="/img/icons/xWhite.png" />
+	</div>
+	
+	<template id="lobbyInviteTemplate">
+&lt;div data-nid&#x3D;&quot;{{{nID}}}&quot; class&#x3D;&quot;notif&quot;&gt;
+    {{{username}}} has invited you to a lobby!
+    &lt;div class&#x3D;&quot;btnBox&quot;&gt;
+        &lt;button&gt;Accept&lt;&#x2F;button&gt;
+        &lt;button&gt;Decline&lt;&#x2F;button&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+</template>
+	<template id="friendTemplate">
+&lt;div class&#x3D;&quot;friend notif {{{online}}}&quot; data-uID&#x3D;&quot;{{{friend_id}}}&quot; data-username&#x3D;&quot;{{{username}}}&quot;&gt;
+    &lt;div class&#x3D;&quot;pfp&quot; style&#x3D;&quot;background-image:url(&#39;https:&#x2F;&#x2F;skalagrad.com&#x2F;img&#x2F;pfp&#x2F;{{{pfp}}}&#39;)&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;div class&#x3D;&quot;user-info&quot;&gt;
+        &lt;span&gt;&lt;a href&#x3D;&quot;&#x2F;users&#x2F;{{username}}&quot;&gt;{{{username}}}&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;
+        &lt;span class&#x3D;&quot;status{{^status}} hidden{{&#x2F;status}}&quot;&gt;{{{status}}}&lt;&#x2F;span&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class&#x3D;&quot;inv&quot; title&#x3D;&quot;Invite to lobby&quot; onclick&#x3D;&quot;emit(&#39;lobby-invite&#39;, {tID: this.closest(&#39;.friend&#39;).getAttribute(&#39;data-uid&#39;)});&quot;&gt;+&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+</template>
+	<template id="matchNotifTemplate">
+&lt;div class&#x3D;&quot;notif match&quot;&gt;
+    &lt;span class&#x3D;&quot;title&quot;&gt;
+        {{{datetimeStr}}}
+        &lt;br&#x2F;&gt;
+        {{{variant}}} in {{{region}}}
+    &lt;&#x2F;span&gt;
+    {{{matchCard}}}
+&lt;&#x2F;div&gt;
+</template>
+	<template id="matchCardTemplate">
+&lt;div class&#x3D;&quot;matchCard&quot; data-mid&#x3D;&quot;{{{matchID}}}&quot; data-pcount&#x3D;&quot;{{{playerCount}}}&quot;&gt;
+{{#teams}}
+    &lt;span class&#x3D;&quot;t{{{teamIndex}}}&quot; data-tid&#x3D;&quot;{{{teamID}}}&quot; data-t-index&#x3D;&quot;{{{teamIndex}}}&quot; data-user-is-capt&#x3D;&quot;{{{reqUserIsCapt}}}&quot; data-roster&#x3D;&quot;{{{players}}}&quot;&gt;
+        {{{teamName}}}
+        &lt;div class&#x3D;&quot;warning helper custom {{^rosterLow}}hidden{{&#x2F;rosterLow}}&quot;&gt;&lt;div class&#x3D;&quot;popText&quot;&gt;Roster does not have enough players set for this game mode&lt;&#x2F;div&gt;&lt;&#x2F;div&gt;
+    &lt;&#x2F;span&gt;
+    &lt;div class&#x3D;&quot;teamBG t{{{teamIndex}}}&quot;&gt;
+    	&lt;div class&#x3D;&quot;opacityBG&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+{{&#x2F;teams}}
+&lt;&#x2F;div&gt;
+</template>
+	<template id="matchCardRosterTemplate">
+&lt;div class&#x3D;&quot;grid&quot;&gt;
+{{#roster}}
+    &lt;div&gt;
+        &lt;div class&#x3D;&quot;checkContainer&quot;&gt;
+            &lt;div class&#x3D;&quot;checkbox {{^userIsCapt}}disabled{{&#x2F;userIsCapt}} {{#isStarter}}checked g{{&#x2F;isStarter}}{{#isBackup}}checked o{{&#x2F;isBackup}}&quot; onclick&#x3D;&quot;toggleCBox(this, event)&quot; title&#x3D;&quot;{{#isBackup}}Backup player{{&#x2F;isBackup}}&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;&#x2F;div&gt;
+        &lt;span&gt;{{{username}}}&lt;&#x2F;span&gt;
+    &lt;&#x2F;div&gt;
+{{&#x2F;roster}}
+&lt;&#x2F;div&gt;
+</template>
 
+	<audio id="notifSound" preload="auto">
+		<source src="/audio/drum2c.mp3" type="audio/mp3" />
+		<source src="/audio/drum2c.mp3" type="audio/ogg" />
+	</audio>
 
+	<div class="menuTitleBox">
+	<div class="menuTitleBox">
+		<span class="menuTitle">Skalagrad</span>
+	</div>
+	</div>
+	<!-- Site navigation bar -->
+	<div id="navBar">
+		<a id="navHome" class="textButton" href="/home">Home</a>
+		<a id="navAbout" class="textButton" href="/about">FAQ</a>
+	</div>
+	
+	<!-- Profile/options bar -->	
+	<div id="optionBar">
+		<div id="loginWindow" class="menu hidden">
+			<div class="wrapper outer">
+			<div class="wrapper inner" style="left: 0;">
+				<form id="newPassForm" onclick="event.stopPropagation()" onsubmit="newPass(this, event)">
+					<span class="title" style="">Set a new password</span>
+					<div class="formItem">
+						<label for="password">Password:</label>
+						<input type="password" name="password" autocomplete="off" />
+					</div>
+					<div class="formItem">
+						<label for="password">Confirm:</label>
+						<input type="password" name="passwordConf" autocomplete="off" />
+					</div>
+					<input type="text" name="resetKey" class="sneaky"/>
+					<input type="text" name="username" class="sneaky" value=""/>
+					<input type="submit" value="Submit">
+					<span class="errorMsg hidden"></span>
+				</form>
+				<form id="loginForm" onclick="event.stopPropagation()" onsubmit="event.preventDefault(); tryLogin(this)">
+					<span class="title">Log in to Skalagrad</span>
+					<div class="formItem">
+						<label for="username">Username:</label>
+						<input type="text" name="username" autocomplete="off" />
+					</div>
+					<div class="formItem">
+						<label for="password">Password:</label>
+						<input type="password" name="password"/>
+					</div>
+					<input type="submit" value="Submit">
+					<span class="errorMsg hidden"></span>
+					<div class="fCol">
+						<span><a href="/signup">Don't have an account? Make one here!</a></span>
+						<span class="linkText" onclick="this.closest('.wrapper.inner').style.left = '-100%';">Forgot username or password?</span>
+					</div>
+				</form>
+				<form id="resetForm" onclick="event.stopPropagation()" onsubmit="resetPass(this, event)">
+					<span class="title" style="font-family: 'cardo-regular'">Reset password</span>
+					<div class="formItem">
+						<label for="email">Email:</label>
+						<input type="text" name="email" autocomplete="off" />
+					</div>
+					<input type="submit" value="Reset">
+					<span class="errorMsg hidden"></span>
+					<span class="linkText" style="position: absolute; bottom: 1.5rem;" onclick="this.closest('.wrapper.inner').style.left = '0';"><&nbsp;&nbsp;Back</span>
+				</form>
+			</div>
+			</div>
+		</div>
 
+		<div id="searchIcon" class="iconBtn">
+			<div class="iconImg" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('closed'); if (this.nextElementSibling.classList.contains('closed')) { closeList(this.nextElementSibling); } else { this.nextElementSibling.querySelector('input').focus(); }"></div>
+			<div id="searchBar" class="contentTitle listContainer filterable closed hIF" onclick="toggleList(this, event)">
+				<div class="listSel"><input class="persist noBlur" onfocus="onInputFocus(this, event)" onblur="onInputBlur(this, event)" oninput="filterList(this, event, true)" onkeydown="onInputPress(this, event)" value="" placeholder="Find a player or team..." spellcheck="false" autocomplete="off" data-default=""/></div>
+				<div class="list dropDown hidden" onclick="listClick(event);">
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />_v_</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />.</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />» Alexiiii « ツ</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />{BKC} TendedTable347</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />†spn</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />◥◤ | Paradox</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />◥KOBA◤</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />✠ Knights Templar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />✹ | Aureate</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />1547325</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />18 Naked Cowboy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />200kg Jonko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />2high</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />37 Gay Rats</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />51 Clan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />696</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />6z</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Aardvark</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />ACE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ad_Enuf</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />adamitude</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Admiral Greedy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Admirativ</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Adolf Healer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Afigenus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />AK</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ale</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />AleX</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />alfothemano</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Alpi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ALS Arne</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ALVYBOI</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />AMGINE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Amor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />An0k4</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Anflockofgoose</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />anomalous</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Antares</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />antonzachrisson</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Apemen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Aqua</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Aralon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Archer Slayer</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />ARCIS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ardy Emmer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Arkosh</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Arrowbros</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Artemius</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Arthas Langley</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Artimorti</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Ash Fraternity</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />AssaultLine</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Assisted</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Astral</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />AutumnWaters</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Avian</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Azazel</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />azura</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />b0nes</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BaalzamonWOT</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Baba</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bajenfan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ballpoint</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Banana</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bane</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BansheeIncubus</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Bapemen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bard</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />barry</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bassam2233</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />batmanzor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BBgurtz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bean</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Beaner</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bear</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bee in The Hand</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Beef boy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Beep</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bellybutun</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Benantp</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />benje</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />benny</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BennyPs2</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bent</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Best Team EU</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bezrq</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Big Dogs</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Big Nigerian</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />big smoke</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BigAFRat</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bigbaldman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BIGMAN</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BinaryWetTree</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Binugs</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BipBip</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />biscuit</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BK</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Blink</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Blipta</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />BLISS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BloodRaiden</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bmo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bobby Bingo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bobflogg</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Boom</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />boomers clan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Borkel</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />boylover17</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Brain Error</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />BrainLag</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />brian guy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />brman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bruno_mordhau</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bubbles</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Buckler Bois</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bug eater</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bulging meat </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Bumble</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />bussypuncher</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cain_ir</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />camo</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Capemen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />care</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />carpet</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cashmate</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cat_mh</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ceo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ceori</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cerb</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />CHAOS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />charles</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Charles Martel</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />chauncho</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />chaz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cheddar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cheems (Bepis)</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cheesemonster</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />chezbugga</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Chipie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Chirs</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ChirsNA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Chombles</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Chopcash</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Chrinders</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Chungles Calamity</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ChuteMai</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ChuteMiNao</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />citamorc</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />clayttz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />clinicallylazy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cloudnation101</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />CoalTrain</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cocknballs</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />CoCo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cold</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cold4Life</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cole</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />coma2black</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Conah</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cool</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cornn_</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Corvere</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cosmic Legacy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />crab</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />CRAZYmadDRAGON</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cronch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />CROW888</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Crowl</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />crush</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Crytek</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Cthulhu</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ctuck</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />cupar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />D x B</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dagda</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dagwood</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DaisyMeRollin</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />danielclaydon1</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Danko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DANNY</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DarthDronah</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />daTESTTEAM</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Daub #0002</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />davidtry</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI 2</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI 3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI 4</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI 5</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />daWASTI 6</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Day</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ddiv</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Deathlykitten</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Deep Nythh</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DeGrandis</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DeltaT</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />delusional</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Depth Guard</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Derealization</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Despa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dessroyed</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Devilstro</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Devwenjun</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dex</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dexty</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Diamond</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dickstabber</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />DINGO WARRIORS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Diomondium</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dirtydan82</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DiscordNotification</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dj4konda</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />djairbee</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DOA | Kirby</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dog</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />dolow</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Don Mega</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Don_Rico</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Donon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DONOSINA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DOODLE808</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dopa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dradel28</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dragonoid 606</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DrPepper</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DrunkDwarf</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DS | Roza</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ducky</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Dueler scum</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />DuendeBrek</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dugost</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Duke</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dylan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Dystopian</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />E G G P L A N T </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />eboklak</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Edog</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />efr0y</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />efranc654</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />eggsaladsuperfan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />eighty</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Elderberries</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ELFARRA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EliBambeli</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Elk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />elly</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EmbarrassmentOfPanda</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EMELGEE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EmperorDastaann</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Endless</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Endless II</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EneSalim</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ensis</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />epicalempire</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />epiqu1n</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Eric</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Erich</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Error_44</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Esbern</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Eternal Kingdom</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ethics</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />eu dalboebi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />euphoria</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Evil SuD</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />EvilN1ght</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />fabben</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fact</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />FAKUFABBEN</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fannullone </div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />FAT</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FaTaliTy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fazarki</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FCWEJDENE</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />FD</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FD Hatchet Sucker</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FeaR</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Feel</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FeintWiz</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Femboys UwU</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Femma</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fenrir</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ferazzle</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fidel Cashflow</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FilthyPeasant</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />firwi</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />FIST</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />fknjonny</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Flame</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />flamecheese</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FlowLikeCoffeeJelly</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Forklift Drivers</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Fortune</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FouD</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Frag &amp; Respect</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Fragile</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FredrickTheFreaker</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Free Thinkers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />FreshKiwi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Friendly Medic</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Frisky</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Froggy Gang</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Frost Biss</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />fucking fednine</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />funnyhumanhomer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Futrex</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Future카p!</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />G59</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />G59SaintPaul</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />gabeitch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gabreil</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Galactic Bois</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Galgorian</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gamblevictim</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />gaming_gopnik</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gandalfthewank</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />geek</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Geologen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />GínTyn</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />givebread</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gloria</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gluten</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Go! Go! Zeppeli</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Godin</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Godsie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Goon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Goten</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Graf.Lev 雄獅</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />GrandpaDrunk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Grassland</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Greg</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Grinch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />grommet9</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />GRUG</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gryphon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />GS-01234</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />guap</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gullet</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gunblast</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gurraa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Guy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Gwynarth</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Haiky</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hairy Braltus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Haji</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Half Asian</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Half Crakkk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hanslequina</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Harald Krull</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hatchet</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Haug</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hawkdownn</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />HEADSHOT.EXE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Heart_</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hector</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Hello team</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hellsing</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />HelterSeltzer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />hexhex17</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />hi.</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hibba</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />HixCX</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hobbo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hodor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />hogwashnd</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />holacom</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Homeless (Len) </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hoplite</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hospitaller</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Hrii Chasm</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />huang</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Hunta</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />hydra</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Idot</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Iforked</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Igglepiggle</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ImLumos</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />immortal290399</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Impostor Squad</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />inn0cent</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Innei</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />iodine</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ir-reed</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />IronFury03</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ixScript</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jabys</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />JackBeanGaming</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jackkyboi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jaeger</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jaginun</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jahbert</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />James</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Japward</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jarkko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jax</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jayy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jazz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jazzyboi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jeppe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jerry</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jew</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jigoogly</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />johmarjac</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Johnny The Monkey</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jola</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Jolly_Boys</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jomarm</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />JoohhnnATH0N</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Joxxyo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jP </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />jubjub</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jud</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Judicator</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Judicatorr</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Juice</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />JunkyardDog</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Jur|s</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Just Dodge</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Justin7089</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />k0rn3r</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />K6-3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />kaban</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kacper</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kalbre</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KapitanZubik</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kas</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Katushi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />kenko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KG3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kiklez</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />kil0</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KillerKeemPaul</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KingPhish3r</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Kings Guard</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KingVlad</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kingy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KIRO</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />KllpDreams</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Knives</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Knossi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kotleba</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kovan☺</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Krompus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kronk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />krosmo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Krother</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kru</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />krymu</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kryptin</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ksarper</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kuess</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kung Fu Panda</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kurama</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Kurinji</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lanternplayer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lantsey</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />later</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lawandorder</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Layon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lazar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LDeee</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ledo</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Legion of Altmor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lester</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LET ME SKATE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lichno</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LightningWar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LightTurnip</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Lineage Chads</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Lineage Progenitors</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Lineage S.W.A.G.</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Lineage SWAG</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lion_jonson</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Liondy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />littlemushroom</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LIVE_shank</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LIZAR(:D)</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lloydchappie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lobsterino</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Loderon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lohcke</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LOLIPOPBITER$$$</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Longshot</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lord Dragalot</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lord Of Lightning</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LORD VEMPS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LordJ</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lothudus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />love(nice(vatican))</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lovewave</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />low</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lucian</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LUCKY777</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />lufeyy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lukas</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lulzye</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Lurk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />LWS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />m0k</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Maggirochen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Magik</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Maino</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mak</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />maks</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />maksim46490</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Malcolm Reynolds</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MammaFlekkeNette</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />man guy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MANA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MANDINGO HUNTER</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mangi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mark</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />marklar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mat</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Matt</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Maurice</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mause</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Max</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />maxy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />McCrabby</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Melon Dog</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />melondog</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />melzor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Memeologist</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mental</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MentalBoomer</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />merzavich</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mess</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Metch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Miang</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />millerdon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />misantrhope</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mlkways</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />MOE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Moldy Buffalo</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Mongrels</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />monit</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MONKEYDSAFETY</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MonkeyUngaBunga</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Monky</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />monkymordhau</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MonnaLisa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />montresor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Monty Python</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mook</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />moon!</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />moron</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Morow</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Moto Moto</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mow</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MozzarellaBomber</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mr Epic</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mr. Falcon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mr.Rag</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MrG4laxy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MrPety</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mrpigdogg</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Muk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mullzey</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mumrikken</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />MusicHelps</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />mydance123</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mystery</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Mystic</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nabu </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nae nae</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Naga</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />NarutoGeneration</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nas0rr</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nathanjdu</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nathook</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nbcc</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />nbccrazy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Neodym</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nevermore</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />newport</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />newtest</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nez</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nezuo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nibko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nietsmmar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Night</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nightray</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nikanor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nikel 9657</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nikko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nile Rodgers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nomad</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nomadn</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nonamesarethere</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />nonartist</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nonkalonk</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Noobest</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Noot</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Nos</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Obama</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ocke64</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ocktay</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Odinokiy Huylopan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ogre_chan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />OLdNoob</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />oli</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Oni</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Only51</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />orate</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Order Of The Dammed</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Oregon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Orion</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Orthodox (URRS)</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />osls</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ostnop</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />osu!</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Owe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />packnah</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Padj</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />PainAndHumiliation</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Paloudi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Papi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Paracetamol666</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Paravox</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Parv</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />PatFussy</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />pedos </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />peenie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />penlid</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />petra</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pewtis</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />PH Duelers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ph0nixstorm</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Phil</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />PickleDestroyers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pineapple</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pinkle Monade</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />pipi popo check</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />PK-B</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />PlagueDoctor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Plasma</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />platinum</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pluto</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />pogeonepoint</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Popix</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Potat</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Potominkus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />PravenliKontOsman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pretty Flacko</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Pretty Knights</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />proq</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />prosciutto</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Proxanis</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ProxBIS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />psycho</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />PtLacky</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />puff</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />puffy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Pug</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />pumers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Puncher Of Women</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Punish_Q3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />pyrex</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />pyrotel_</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Qirkly</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />qu1n</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ra</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Random Joes</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />raod</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Rapemen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rasckal</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Rat Gang</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ratking_Cr0nch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rattgift</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Ravan Gaming | RG</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rawn</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />razork1</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />RE_Angel</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Real Arsekiss</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Reax</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />red</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Red Rum Bandits</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />RED_glhf</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />RedBlue</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />reddblue</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />regan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Reksometr</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />reksometr2</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rengoku</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Retroxiity</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Reuben</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Revenant</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rex</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rexpo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ReZa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rgg</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rhardok</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rhubein</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />richard</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rilakkuma</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ring</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rizla</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Roag</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rob</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />robocock</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rockman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rocrest</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rode</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Roine</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />RojokooL</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rokus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Roman Legionary</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />RomaNTyk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ronin</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rossolini</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Roxy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rtytuyi</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />rusty</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rynkk</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Rytrix</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />S.M.U.D.S</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Saiki-Chan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Salt Connoisseur</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Salt_wompa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />samuraiz0r</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sandasty</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SANDVICH</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Sargma</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sauce</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />saul_g00dman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Saved1</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Scarface</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Schweppes</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />scolio</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />scoobie3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Scout</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Scratchpaw</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />scrid</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Script</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Scrooge snusgod</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Scuba</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Se7en</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />seanset</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sebbo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />sebby</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Section</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />sell1224</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sensei</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sentine</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sertion</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Serv</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Setup</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Setz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shabba</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SHABBASHABBA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ShadowOfaManTV</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shady</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shagramek</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shaun</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shit</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shotis</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shōyō Hinata</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ShoZ</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />shtabbbe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Shusho</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sieege</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />siisti sameli</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SillyString35</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />simon sniffcock</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />sinbad</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sir Rebral Palsy </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SirBeef</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SirMilos</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Sixth Sense</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Skeletonman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />skitz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />skotman</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SKRABSTIAN</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Skraggy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Skunk Kenny</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />skwabby</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SkylarWX</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />skylilack</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Skylord_Siegfried</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />slampa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />slapnut</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Slash</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sleve</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />slimkilla</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />slowpoke</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sly</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SmasherBen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Smile</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SmileNA</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Smithy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />smoke</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Snail</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Snippy Bois</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sol</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />sol_</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SolsLegacy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />SolvedNC</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />somatization</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Some noob</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Sons of Malice</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Sp00derSna3kz</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Space Biden</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sparky</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Spartan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />spartenFedor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />spiff</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Spin Inferno</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Splonter</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />spoon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />St0uty</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />stefanology</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Stev</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Stewie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />stinky</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />stolly</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />stone</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />STORM</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Str8_Wheezn</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />StricDolfe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />stuhl</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sult</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sunglasses</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Suntti</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sushiio</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />svitch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Swainy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Swedish Bot</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />swiift</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sykotic</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Symbol</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Syndishit</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Sypport</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />systema</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />t i m o</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tabzen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tactefor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Talla</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />talon</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tatkimay</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tea</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />TEAM</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Teamname</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tekkers</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tendoushu</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Teronik</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Test5</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Testing</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Testing 3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tex</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The Alpaca</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The Blackfish</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />The Council</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The Lord</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The Noodle Man</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />The Roman Empire</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />THE SLAVIC KEBAB</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The Sponge</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />the_kakameister</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />The_Timeinator</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />thegloriousnectar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TheMon3y</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TheSneakySlothh</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Thnitch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />thobyy</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Thomas Gunlar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Thor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Thrain</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Thryber</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tiernan330</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tigrix</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tirion</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tlayed</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Toasted</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />toasterguyxd</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tom212</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tomac</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tommy4671</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TOTN</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />toucan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TPope</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />trash man</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />traveller</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Tredecim</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TriHard</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />triplesix2001</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TrixAU</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Trogdor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tropicana</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tsuney</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tuna</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tunnel</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tunnelsnakesdrool</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Turtile</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />TwigFlipper</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Twisted Tongue</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />twisty</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Two Dollar Horde</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />tygunn05</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tyrant</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Tywin Kannister</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />uHCneKToP</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />UL ON TOP</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ultra purity</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />umbra</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Unteruber</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />UPteam</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />vacant</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />vacdim</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Valter</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Vatican</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Vatutso </div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />vBlue-</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Velikiy Egor</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Versace</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Vesku</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Vilekko</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Villain</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Viper</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Virgil</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />VIRSTANPYLAS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Visceral Wanker</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />visceralwanker</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Visco</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />vision</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Voilaaaaaa</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Vrag</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Vulthar</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />vvhiite</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />wahbs</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Waleed</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Walter Frosch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />WalTR</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Ward</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />warszaw clique</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wasabi Avenger</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Waylander</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />WE_LOVE_KIDS</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />werv</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />what</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />white f40</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />WhiteLegs</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />WhiteStallionCompany</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />whosomless</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wide mikael</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wilhelm</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />WillardtheGod</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wille</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wilt</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />WindowsBlueScreen</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />WitchBolt</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wlaput</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Woe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Wolf_76</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />wolfe</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />wotan</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />wrath</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />WSC | Scooby</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Wumbo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />wunderwave</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />xeonyz1</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />xFunShotzZ</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />xkarmo</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />xkod3</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />XuyLO</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />xXWessexGod420Xx</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />XxX_Meggies69_XxX</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Xziros</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Yang</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yanh</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />YAZVERb</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Yeeping</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />Yeet</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yester</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Yeuas</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yobber</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yoda</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yori</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Yoshie</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />YOungNoob</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yourself</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ySwitch</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Yuber</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />YuberiTii</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />yujiro</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />YungAaron</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />yup</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />YUUMXNE</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />ZachSmack</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />zay</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Zeaus</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />zheros</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Λᾰκεδαιμόνῐος</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />Дядя_Влад</div>
+						<div class="listOpt hidden" data-type="user"><img src="/img/icons/user.png" />скиф</div>
+						<div class="listOpt hidden" data-type="team"><img src="/img/icons/team.png" />亗 | Monarchy </div>
+					<div class="listOpt noneOpt hidden" onclick="event.stopPropagation()">No results found</div>
+				</div>
+			</div>
+		</div>
+
+			<div id="signin" onclick="toggleMenu('loginWindow', event)">Sign in</div>
+		
+	
+		<div id="discordButton" class="linkButton rounded" onclick="window.open('', '_blank')" title="Skalagrad Discord"></div>
+		<div id="steadyButton" class="linkButton rounded tool-src" onclick="window.open('', '_blank')">
+			<div class="tooltip">Subscribe on Steady to get member perks!</div>
+		</div>
+
+	
+		<div id="regionContainer">
+			<img src="/img/icons/globe.png" />
+			<div id="regionSelect" class="listContainer" onclick="toggleList(this, event)">
+				<div class="listSel"></div>
+				<div class="list dropDown hidden">
+					<div id="reg_EU" class="listOpt" onclick="changeListOpt(this, event, true)">Europe<div class="short">EU</div></div>
+					<div id="reg_NA" class="listOpt" onclick="changeListOpt(this, event, true)">North America<div class="short">NA</div></div>
+					<div id="reg_RU" class="listOpt" onclick="changeListOpt(this, event, true)">Russia<div class="short">RU</div></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="pfpChange" class="menu overlay hidden">
+	<div class="content" onclick="event.stopPropagation()">
+		<span class="title">Change your profile picture</span>
+		<form id="pfpChangeForm" onsubmit="event.preventDefault(); changePfp(this)">
+			<div class="pfpUpload">
+				<img class="pfpPreview" src="/img/pfp/default.png">
+				<input type="file" name="pfp" accept="image/jpeg, image/png" onchange="previewUpload(this.parentNode.querySelector('.pfpPreview'), event)" />
+				<label class="pfpLabel" for="pfp"><div>Upload an image...</div></label>
+			</div>
+			<input type="submit" value="Submit">
+		</form>
+	</div>
+</div>
 
 
 <div class="contentBody">
 <div class="panelBody">
-	
+	<div id="newsBox" class="contentBlock panel">
+		<div class="contentTitle">News & Media</div>
+		
+		<div class="tableContainer">
+		<table id="newsFeed">
+		<tbody>
+		</tbody>
+		</table>
+		</div>
+	</div>
 	
 	<div class="contentBlock panel boardBox match">
-		<div class="contentTitle">Mordhau SA players rank</div>
-		
-		
+		<div class="contentTitle">Player Leaderboards</div>
+		<div class="contentTitle">Skirmish</div>
+		<div id="topPlayerVar" class="listContainer hidden" onclick="toggleList(this, event)">
+			<div class="listSel">5v5 Skirmish</div><img src="/img/icons/dropArrow.png" class="dropArrow" />
+			<div class="list dropDown hidden">
+				<div class="listOpt" onclick="changeListOpt(this, event)">3v3 Skirmish</div>
+				<div class="listOpt selected" onclick="changeListOpt(this, event)">5v5 Skirmish</div>
+			</div>
+		</div>
 		
 		<div class="tableContainer">
 		<table id="topMatchBoardPlayers" class="leaderboard">
-		<thead style="padding-right: 1rem;">
+		<thead>
 			<tr>
 				<th class="tableTitle">Rank</th>
 				<th class="tableTitle teamName">Contestant</th>
-				
+				<th class="tableTitle">MMR</th>
 			</tr>
 		</thead>
-		<tbody><tr><td>1
-</td><td><a class="name">Hutking</a></td></tr><tr><td>2</td><td><a class="name">Golden Crusader </a></td></tr><tr><td>3
-</td><td><a class="name">Porco</a></td></tr><tr><td>4</td><td><a class="name">RED</a></td></tr><tr><td>5</td><td><a class="name">muller</a></td></tr><tr><td>6</td><td><a class="name">Invictus</a></td></tr><tr><td>7</td><td><a class="name">Leosyn</a></td></tr><tr><td>8</td><td><a class="name">Gabriel</a></td></tr><tr><td>9</td><td><a class="name">Zazapi</a></td></tr><tr><td>10</td><td><a class="name">Sir Cruzadie</a></td></tr></tbody>
+		<tbody>
+		</tbody>
 		</table>
 		</div>
 	</div>
 
-	
+	<div class="contentBlock panel boardBox match">
+		<div class="contentTitle">Team Leaderboards</div>
+		<div class="contentTitle">Skirmish</div>
+		<div id="topTeamVar" class="listContainer hidden" onclick="toggleList(this, event)">
+			<div class="listSel">5v5 Skirmish</div><img src="/img/icons/dropArrow.png" class="dropArrow" />
+			<div class="list dropDown hidden">
+				<div class="listOpt" onclick="changeListOpt(this, event)">3v3 Skirmish</div>
+				<div class="listOpt selected" onclick="changeListOpt(this, event)">5v5 Skirmish</div>
+			</div>
+		</div>
+		
+		<div class="tableContainer">
+		<table id="topMatchBoardTeams" class="leaderboard">
+		<thead>
+			<tr>
+				<th class="tableTitle">Rank</th>
+				<th class="tableTitle teamName">Contestant</th>
+				<th class="tableTitle">MMR</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+		</table>
+		</div>
+	</div>
 </div>
 <div id="footer">
-	
-	
-	
+	<a href="https://store.steampowered.com/app/629760/MORDHAU/" target="_blank">Buy Mordhau on Steam</a>
+	<a href="https://steadyhq.com/en/skalagrad" target="_blank">Become a Member</a>
+	<div class="vList">
+		<a href="mailto:support@skalagrad.com">Contact us</a>
+		<a onclick="openMenu('pdf', event)">Privacy Policy</a>
+	</div>
 </div>
 </div>
 
+
+
+<!-- Background video-->
+<div id="bgVideoWrapper">
+	<video id="bgVideo" poster="" muted autoplay loop oncanplay="this.style.opacity = 1;">
+		<source src="video/Skalagrad_Background_final_best.mov" type="video/mp4">
+	</video>
+</div>
 
 </body>
+</html>
