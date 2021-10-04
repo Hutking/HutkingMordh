@@ -1,51 +1,5 @@
-    font-size: 16px;
-    --color-faded-gold: #BFA97C;
-    --color-gold: #EAD979;
-    --color-deep-gold: #dbb263;
-    --color-deeper-gold: #d9a33c;
-    --color-deepest-gold: #c98e1d;
-    --color-silver: #AAAAAA;
-    --color-light-silver: #bfbfbf;
-    --color-off-white: #dcd7d1;
-    --color-winner-green: #5e8430;
-    --color-loser-red: #ab2c2c;
-    --color-team-red: #bd3a3a;
-    --color-team-blue: #4965d0;
-    --color-dev-red: #bb3030;
-    --bgColor-light-black: #101110;
-    --bgColor-dark-gray: #1c1c1c;
-    --bgColor-transp-slate: #202328fa;
-    --bgColor-gray: #272727;
-    --bgColor-light-gray: #a09f9f;
-    --bgColor-medium-gray: #313131;
-    --bgColor-header-blue: #192b3e;
-    --bgColor-button-blue: #253e57;
-    --bgColor-team-red: #4a1f1f;
-    --bgColor-team-blue: #252958;
-    --bgColor-pfp: #2e2e2e;
-    --bgColor-green: #72c60d;
-    --bgColor-simple-red: #622626;
-    --bgColor-simple-dark-red: #401111;
-    --bgColor-deep-velvet: #311515;
-    --border-gray: #2F2D2F;
-    --border-black: #181818;
-    --border-coal: #101110;
-    --menuBar-height: 4.5rem;
-    --footer-height: 5rem;
-    box-sizing: border-box;
-    font-family: 'cardo-regular';
-    cursor: default;
-    font-weight: normal;
-    position: fixed;
-    z-index: 1;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: flex-start;
-    background-color: #262626;
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
-    background-size: cover;
-    align-items: center;
-    background-image: url("/img/bgs/bgvideo_poster.png");
-    background-position: center;
+   body#home, body#tournaments {
+    /* background-image: url(/img/bgs/bg2.png); */
+    background-image: url(/img/bgs/bgvideo_poster.png);
+    /* background-position: center; */
+}
