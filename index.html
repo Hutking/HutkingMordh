@@ -1,155 +1,7 @@
-<html>
 <body id="home" onload="onPageLoad()">
-<div id="menuBar">
-	<div id="preloader">
-		<img src="/img/icons/xWhite.png">
-	</div>
-	
-	<template id="lobbyInviteTemplate">
-&lt;div data-nid="{{{nID}}}" class="notif"&gt;
-    {{{username}}} has invited you to a lobby!
-    &lt;div class="btnBox"&gt;
-        &lt;button&gt;Accept&lt;/button&gt;
-        &lt;button&gt;Decline&lt;/button&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-</template>
-	<template id="friendTemplate">
-&lt;div class="friend notif {{{online}}}" data-uID="{{{friend_id}}}" data-username="{{{username}}}"&gt;
-    &lt;div class="pfp" style="background-image:url('https://skalagrad.com/img/pfp/{{{pfp}}}')"&gt;&lt;/div&gt;
-    &lt;div class="user-info"&gt;
-        &lt;span&gt;&lt;a href="/users/{{username}}"&gt;{{{username}}}&lt;/a&gt;&lt;/span&gt;
-        &lt;span class="status{{^status}} hidden{{/status}}"&gt;{{{status}}}&lt;/span&gt;
-    &lt;/div&gt;
-    &lt;div class="inv" title="Invite to lobby" onclick="emit('lobby-invite', {tID: this.closest('.friend').getAttribute('data-uid')});"&gt;+&lt;/div&gt;
-&lt;/div&gt;
-</template>
-	<template id="matchNotifTemplate">
-&lt;div class="notif match"&gt;
-    &lt;span class="title"&gt;
-        {{{datetimeStr}}}
-        &lt;br/&gt;
-        {{{variant}}} in {{{region}}}
-    &lt;/span&gt;
-    {{{matchCard}}}
-&lt;/div&gt;
-</template>
-	<template id="matchCardTemplate">
-&lt;div class="matchCard" data-mid="{{{matchID}}}" data-pcount="{{{playerCount}}}"&gt;
-{{#teams}}
-    &lt;span class="t{{{teamIndex}}}" data-tid="{{{teamID}}}" data-t-index="{{{teamIndex}}}" data-user-is-capt="{{{reqUserIsCapt}}}" data-roster="{{{players}}}"&gt;
-        {{{teamName}}}
-        &lt;div class="warning helper custom {{^rosterLow}}hidden{{/rosterLow}}"&gt;&lt;div class="popText"&gt;Roster does not have enough players set for this game mode&lt;/div&gt;&lt;/div&gt;
-    &lt;/span&gt;
-    &lt;div class="teamBG t{{{teamIndex}}}"&gt;
-    	&lt;div class="opacityBG"&gt;&lt;/div&gt;
-    &lt;/div&gt;
-{{/teams}}
-&lt;/div&gt;
-</template>
-	<template id="matchCardRosterTemplate">
-&lt;div class="grid"&gt;
-{{#roster}}
-    &lt;div&gt;
-        &lt;div class="checkContainer"&gt;
-            &lt;div class="checkbox {{^userIsCapt}}disabled{{/userIsCapt}} {{#isStarter}}checked g{{/isStarter}}{{#isBackup}}checked o{{/isBackup}}" onclick="toggleCBox(this, event)" title="{{#isBackup}}Backup player{{/isBackup}}"&gt;&lt;/div&gt;
-        &lt;/div&gt;
-        &lt;span&gt;{{{username}}}&lt;/span&gt;
-    &lt;/div&gt;
-{{/roster}}
-&lt;/div&gt;
-</template>
 
-	<audio id="notifSound" preload="auto">
-		<source src="/audio/drum2c.mp3" type="audio/mp3">
-		<source src="/audio/drum2c.mp3" type="audio/ogg">
-	</audio>
 
-	<div class="menuTitleBox">
-	<div class="menuTitleBox">
-		<span class="menuTitle">Hutking</span>
-	</div>
-	</div>
-	<!-- Site navigation bar -->
-	
-	
-	<!-- Profile/options bar -->	
-	<div id="optionBar">
-		<div id="loginWindow" class="menu hidden">
-			<div class="wrapper outer">
-			<div class="wrapper inner" style="left: 0;">
-				<form id="newPassForm" onclick="event.stopPropagation()" onsubmit="newPass(this, event)">
-					<span class="title" style="">Set a new password</span>
-					<div class="formItem">
-						<label for="password">Password:</label>
-						<input type="password" name="password" autocomplete="off">
-					</div>
-					<div class="formItem">
-						<label for="password">Confirm:</label>
-						<input type="password" name="passwordConf" autocomplete="off">
-					</div>
-					<input type="text" name="resetKey" class="sneaky">
-					<input type="text" name="username" class="sneaky" value="">
-					<input type="submit" value="Submit">
-					<span class="errorMsg hidden"></span>
-				</form>
-				<form id="loginForm" onclick="event.stopPropagation()" onsubmit="event.preventDefault(); tryLogin(this)">
-					<span class="title">Log in to Skalagrad</span>
-					<div class="formItem">
-						<label for="username">Username:</label>
-						<input type="text" name="username" autocomplete="off">
-					</div>
-					<div class="formItem">
-						<label for="password">Password:</label>
-						<input type="password" name="password">
-					</div>
-					<input type="submit" value="Submit">
-					<span class="errorMsg hidden"></span>
-					<div class="fCol">
-						<span><a href="/signup">Don't have an account? Make one here!</a></span>
-						<span class="linkText" onclick="this.closest('.wrapper.inner').style.left = '-100%';">Forgot username or password?</span>
-					</div>
-				</form>
-				<form id="resetForm" onclick="event.stopPropagation()" onsubmit="resetPass(this, event)">
-					<span class="title" style="font-family: 'cardo-regular'">Reset password</span>
-					<div class="formItem">
-						<label for="email">Email:</label>
-						<input type="text" name="email" autocomplete="off">
-					</div>
-					<input type="submit" value="Reset">
-					<span class="errorMsg hidden"></span>
-					<span class="linkText" style="position: absolute; bottom: 1.5rem;" onclick="this.closest('.wrapper.inner').style.left = '0';">&lt;&nbsp;&nbsp;Back</span>
-				</form>
-			</div>
-			</div>
-		</div>
 
-		
-
-			
-		
-	
-		
-		
-
-	
-		
-	</div>
-</div>
-
-<div id="pfpChange" class="menu overlay hidden">
-	<div class="content" onclick="event.stopPropagation()">
-		<span class="title">Change your profile picture</span>
-		<form id="pfpChangeForm" onsubmit="event.preventDefault(); changePfp(this)">
-			<div class="pfpUpload">
-				<img class="pfpPreview" src="/img/pfp/default.png">
-				<input type="file" name="pfp" accept="image/jpeg, image/png" onchange="previewUpload(this.parentNode.querySelector('.pfpPreview'), event)">
-				<label class="pfpLabel" for="pfp"><div>Upload an image...</div></label>
-			</div>
-			<input type="submit" value="Submit">
-		</form>
-	</div>
-</div>
 
 
 <div class="contentBody">
@@ -159,13 +11,7 @@
 	<div class="contentBlock panel boardBox match">
 		<div class="contentTitle">Mordhau SA players rank</div>
 		
-		<div id="topPlayerVar" class="listContainer hidden" onclick="toggleList(this, event)">
-			<div class="listSel">5v5 Skirmish</div><img src="/img/icons/dropArrow.png" class="dropArrow">
-			<div class="list dropDown hidden">
-				<div class="listOpt" onclick="changeListOpt(this, event)">3v3 Skirmish</div>
-				<div class="listOpt selected" onclick="changeListOpt(this, event)">5v5 Skirmish</div>
-			</div>
-		</div>
+		
 		
 		<div class="tableContainer">
 		<table id="topMatchBoardPlayers" class="leaderboard">
@@ -176,7 +22,9 @@
 				
 			</tr>
 		</thead>
-		<tbody><tr><td><img src="/img/icons/1.png" class="numImg1"></td><td><a class="name">Hutking</a></td></tr><tr><td><img src="/img/icons/2.png" class="numImg2"></td><td><a class="name">Golden Crusader </a></td></tr><tr><td><img src="/img/icons/3.png" class="numImg3"></td><td><a class="name">Porco</a></td></tr><tr><td>4</td><td><a class="name">RED</a></td></tr><tr><td>5</td><td><a class="name">muller</a></td></tr><tr><td>6</td><td><a class="name">Invictus</a></td></tr><tr><td>7</td><td><a class="name">Leosyn</a></td></tr><tr><td>8</td><td><a class="name">Gabriel</a></td></tr><tr><td>9</td><td><a class="name">Zazapi</a></td></tr><tr><td>10</td><td><a class="name">Sir Cruzadie</a></td></tr></tbody>
+		<tbody><tr><td>1
+</td><td><a class="name">Hutking</a></td></tr><tr><td>2</td><td><a class="name">Golden Crusader </a></td></tr><tr><td>3
+</td><td><a class="name">Porco</a></td></tr><tr><td>4</td><td><a class="name">RED</a></td></tr><tr><td>5</td><td><a class="name">muller</a></td></tr><tr><td>6</td><td><a class="name">Invictus</a></td></tr><tr><td>7</td><td><a class="name">Leosyn</a></td></tr><tr><td>8</td><td><a class="name">Gabriel</a></td></tr><tr><td>9</td><td><a class="name">Zazapi</a></td></tr><tr><td>10</td><td><a class="name">Sir Cruzadie</a></td></tr></tbody>
 		</table>
 		</div>
 	</div>
@@ -212,5 +60,6 @@
           <a id="cssscan-license-modal-contact" href="https://airtable.com/shrsDQGBd3xRdCV2k" target="_blank">Contact Us</a>
         </div>
       </div>
-    </div></body>
-<html>
+    </div>
+
+</body>
