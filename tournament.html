@@ -7,12 +7,44 @@ body {
   background-image: url('hutkingbg.jpg');
 }
 
+/* Add a black background color to the top navigation */
+.topnav {
+  background-color: #780000;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Style the links inside the navigation bar */
+.topnav a {
+  float: center;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 30px 30px;
+  text-decoration: none;
+  font-size: 60px;
+}
+
+/* Change the color of links on hover */
+.topnav a:hover {
+  background-color: #ddd;
+  text-align: center;
+  color: black;
+}
+
+/* Add a color to the active/current link */
+.topnav a.active {
+  background-color: #414449;
+  text-align: center;
+  color: #b19b00;
+}
+
 </style>
   </head>
   <body>
-    <h1>Href Attribute Example</h1>
-    <p>
-      <a href="https://www.freecodecamp.org/contribute/">The freeCodeCamp Contribution Page</a> shows you how and where you can contribute to freeCodeCamp's community and growth.
-    </p>
+
+<div class="topnav">
+  <a class="active">The Golden Company</a>
+</div> 
+   
   </body>
 </html>
