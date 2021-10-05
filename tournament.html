@@ -93,6 +93,37 @@ h5 {
     color: #780000;
 }
 
+.navbar {
+  background-color: #202020;
+  overflow: hidden;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Style the links inside the navigation bar */
+.navbar a {
+  float: left;
+  display: block;
+  color: #b18c12;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+/* Change the color of links on hover */
+.navbar a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+/* Add a color to the active/current link */
+.navbar a.active {
+  background-color: #780000;
+  color: #b18c12;
+}
+
 </style>
   </head>
   <body>
@@ -113,6 +144,12 @@ h5 {
     <h4>Second tournament (October 9):</h4>
 
 <h5>———————————————————————————————————————————————————</h5>
+
+<div class="navbar">
+  <a href="./index.html" class="active">Home</a>
+  <a href="./tournament.html">Tournament</a>
+  <a>By Hutking</a>
+</div>
 
   </body>
 </html>
